@@ -26,7 +26,7 @@ The view is a subclass of a UIView. It contains 2 scrollViews, background and fo
 
 Please view example project to get the idea of how to implement. 
 
-**How to implement Yahoo! like horizontal Scroll**  
+**How to implement Yahoo! like horizontal Scroll:**  
 *To Be Added - it is in the example just not explained in words*  
 
 **Note:**
