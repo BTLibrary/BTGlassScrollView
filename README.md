@@ -32,9 +32,13 @@ Please view example project to get the idea of how to implement.
 **Note:**
 The example provided are mix of 3 * 2 flavor. 3 ways to create viewController and 2 ways to implement the view. Uncomment the code in Appdelegate to see the different ways of creating ViewController and change the `#define SIMPLE_SAMPLE` to see the two ways of implementing
 
+*3 ways to create viewController:*
+
 1. plain vanilla viewController
 2. viewController with NavigationController
 3. viewController as a second screen of NavigationController
+
+*2 ways to implement the view*
 
 1. simple implementation
 2. complex horizontal scroll implementation
