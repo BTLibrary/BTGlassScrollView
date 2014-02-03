@@ -47,6 +47,15 @@ The example provided are mix of 3 * 2 flavor. 3 ways to create viewController an
 
 ----
 
+**Example 2 Note**  
+*It is not without its bug. I would be very glad if someone can help fixing it*  
+Known issues:  
+1. the scrolling flickers at times  
+2. no separator between the two  
+3. some of the method is a hack (heed the warning of the comment)
+
+----
+
 **Copyright 2014 Byte**
 
 Licensed under the Apache License, Version 2.0 (the "License");
