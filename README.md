@@ -1,6 +1,8 @@
 BTGlassScrollView
 =================
 
+![Vertical](/Gifs/Vertical.gif) _ ![Horizontal](/Gifs/Horizontal.gif)
+
 This is a view for you to either use as-is or modify the source. The view comes loaded with the ability to:
 
 1. Create a self contained view replicating the look and feel of one panel of Yahoo! Weather app
