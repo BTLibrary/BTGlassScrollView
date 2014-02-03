@@ -11,7 +11,7 @@
 @implementation BTGlassScrollView
 {
     UIScrollView *_backgroundScrollView;
-    UIView *_constraitView;
+    UIView *_constraitView; // for autolayout
     UIImageView *_backgroundImageView;
     UIImageView *_blurredBackgroundImageView;
     
@@ -22,14 +22,6 @@
     UIImageView *_topMaskImageView;
 }
 
-- (id)initWithFrame:(CGRect)frame
-{
-    self = [super initWithFrame:frame];
-    if (self) {
-        // Initialization code
-    }
-    return self;
-}
 
 - (id)initWithFrame:(CGRect)frame BackgroundImage:(UIImage *)backgroundImage blurredImage:(UIImage *)blurredImage viewDistanceFromBottom:(CGFloat)viewDistanceFromBottom foregroundView:(UIView *)foregroundView
 {
@@ -40,7 +32,11 @@
         if (blurredImage) {
             _blurredBackgroundImage = backgroundImage;
         }else{
-            _blurredBackgroundImage = [backgroundImage applyBlurWithRadius:DEFAULT_BLUR_RADIUS tintColor:DEFAULT_BLUR_TINT_COLOR saturationDeltaFactor:DEFAULT_BLUR_DELTA_FACTOR maskImage:nil];
+            if ([_delegate respondsToSelector:@selector(glassScrollView:blurForImage:)]) {
+                _blurredBackgroundImage = [_delegate glassScrollView:self blurForImage:_backgroundImage];
+            } else {
+                _blurredBackgroundImage = [backgroundImage applyBlurWithRadius:DEFAULT_BLUR_RADIUS tintColor:DEFAULT_BLUR_TINT_COLOR saturationDeltaFactor:DEFAULT_BLUR_DELTA_FACTOR maskImage:nil];
+            }
         }
         _viewDistanceFromBottom = viewDistanceFromBottom;
         _foregroundView = foregroundView;
@@ -57,8 +53,11 @@
     return self;
 }
 
+#pragma mark - Public Functions
+
 - (void)scrollHorizontalRatio:(CGFloat)ratio
 {
+    // when the view scroll horizontally, this works the parallax magic
     [_backgroundScrollView setContentOffset:CGPointMake(DEFAULT_MAX_BACKGROUND_MOVEMENT_HORIZONTAL + ratio * DEFAULT_MAX_BACKGROUND_MOVEMENT_HORIZONTAL, _backgroundScrollView.contentOffset.y)];
 }
 
@@ -72,26 +71,27 @@
 {
     [super setFrame:frame];
     //work background
-    CGRect bound = CGRectOffset(frame, -frame.origin.x, -frame.origin.y);
+    CGRect bounds = CGRectOffset(frame, -frame.origin.x, -frame.origin.y);
     
-    [_backgroundScrollView setFrame:bound];
-    [_backgroundScrollView setContentSize:CGSizeMake(bound.size.width + DEFAULT_MAX_BACKGROUND_MOVEMENT_HORIZONTAL, bound.size.height + DEFAULT_MAX_BACKGROUND_MOVEMENT_VERTICAL)];
+    [_backgroundScrollView setFrame:bounds];
+    [_backgroundScrollView setContentSize:CGSizeMake(bounds.size.width + 2*DEFAULT_MAX_BACKGROUND_MOVEMENT_HORIZONTAL, self.bounds.size.height + DEFAULT_MAX_BACKGROUND_MOVEMENT_VERTICAL)];
     [_backgroundScrollView setContentOffset:CGPointMake(DEFAULT_MAX_BACKGROUND_MOVEMENT_HORIZONTAL, 0)];
-    [_constraitView setFrame:CGRectMake(0, 0, frame.size.width + DEFAULT_MAX_BACKGROUND_MOVEMENT_HORIZONTAL, frame.size.height + DEFAULT_MAX_BACKGROUND_MOVEMENT_VERTICAL)];
+
+    [_constraitView setFrame:CGRectMake(0, 0, bounds.size.width + 2*DEFAULT_MAX_BACKGROUND_MOVEMENT_HORIZONTAL, bounds.size.height + DEFAULT_MAX_BACKGROUND_MOVEMENT_VERTICAL)];
     
     //foreground
-    [_foregroundContainerView setFrame:bound];
-    [_foregroundScrollView setFrame:bound];
+    [_foregroundContainerView setFrame:bounds];
+    [_foregroundScrollView setFrame:bounds];
     [_foregroundView setFrame:CGRectOffset(_foregroundView.bounds, (_foregroundScrollView.frame.size.width - _foregroundView.bounds.size.width)/2, _foregroundScrollView.frame.size.height - _foregroundScrollView.contentInset.top - _viewDistanceFromBottom)];
-    [_foregroundScrollView setContentSize:CGSizeMake(bound.size.width, _foregroundView.frame.origin.y + _foregroundView.frame.size.height)];
+    [_foregroundScrollView setContentSize:CGSizeMake(bounds.size.width, _foregroundView.frame.origin.y + _foregroundView.bounds.size.height)];
     
     //shadows
     //[self createTopShadow];
-    [_topShadowLayer setFrame:CGRectMake(0, 0, frame.size.width, _foregroundScrollView.contentInset.top + DEFAULT_TOP_FADING_HEIGHT_HALF)];
-    [_botShadowLayer setFrame:CGRectMake(0, bound.size.height - _viewDistanceFromBottom, bound.size.width, bound.size.height)];//CGRectOffset(_botShadowLayer.bounds, 0, frame.size.height - _viewDistanceFromBottom)];
+    [_topShadowLayer setFrame:CGRectMake(0, 0, bounds.size.width, _foregroundScrollView.contentInset.top + DEFAULT_TOP_FADING_HEIGHT_HALF)];
+    [_botShadowLayer setFrame:CGRectMake(0, bounds.size.height - _viewDistanceFromBottom, bounds.size.width, bounds.size.height)];//CGRectOffset(_botShadowLayer.bounds, 0, frame.size.height - _viewDistanceFromBottom)];
 
     if (_delegate && [_delegate respondsToSelector:@selector(glassScrollView:didChangedToFrame:)]) {
-        [_delegate glassScrollView:self didChangedToFrame:bound];
+        [_delegate glassScrollView:self didChangedToFrame:frame];
     }
 }
 
@@ -111,7 +111,9 @@
     [_foregroundScrollView setContentSize:CGSizeMake(self.frame.size.width, _foregroundView.frame.origin.y + _foregroundView.frame.size.height)];
     
     //reset the offset
-    [_foregroundScrollView setContentOffset:CGPointMake(0, - _foregroundScrollView.contentInset.top)];
+    if (_foregroundScrollView.contentOffset.y == 0) {
+        [_foregroundScrollView setContentOffset:CGPointMake(0, -_foregroundScrollView.contentInset.top)];
+    }
     
     //adding new mask
     _foregroundContainerView.layer.mask = [self createTopMaskWithSize:CGSizeMake(_foregroundContainerView.frame.size.width, _foregroundContainerView.frame.size.height) startFadeAt:_foregroundScrollView.contentInset.top - DEFAULT_TOP_FADING_HEIGHT_HALF endAt:_foregroundScrollView.contentInset.top + DEFAULT_TOP_FADING_HEIGHT_HALF topColor:[UIColor colorWithWhite:1.0 alpha:0.0] botColor:[UIColor colorWithWhite:1.0 alpha:1.0]];
@@ -120,9 +122,9 @@
     [self createTopShadow];
 }
 
+
 - (void)setViewDistanceFromBottom:(CGFloat)viewDistanceFromBottom
 {
-#warning might cause infiniteloop
     _viewDistanceFromBottom = viewDistanceFromBottom;
     
     [_foregroundView setFrame:CGRectOffset(_foregroundView.bounds, (_foregroundScrollView.frame.size.width - _foregroundView.bounds.size.width)/2, _foregroundScrollView.frame.size.height - _foregroundScrollView.contentInset.top - _viewDistanceFromBottom)];
@@ -130,6 +132,53 @@
     
     //shadows
     [_botShadowLayer setFrame:CGRectOffset(_botShadowLayer.bounds, 0, self.frame.size.height - _viewDistanceFromBottom)];
+}
+
+- (void)setBackgroundImage:(UIImage *)backgroundImage overWriteBlur:(BOOL)overWriteBlur animated:(BOOL)animated duration:(NSTimeInterval)interval
+{
+    _backgroundImage = backgroundImage;
+    if (overWriteBlur) {
+        _blurredBackgroundImage = [backgroundImage applyBlurWithRadius:DEFAULT_BLUR_RADIUS tintColor:DEFAULT_BLUR_TINT_COLOR saturationDeltaFactor:DEFAULT_BLUR_DELTA_FACTOR maskImage:nil];
+    }
+    
+    if (animated) {
+        UIImageView *previousBackgroundImageView = _backgroundImageView;
+        UIImageView *previousBlurredBackgroundImageView = _blurredBackgroundImageView;
+        [self createBackgroundImageView];
+        
+        [_backgroundImageView setAlpha:0];
+        [_blurredBackgroundImageView setAlpha:0];
+        
+        // blur needs to get animated first if the background is blurred
+        if (previousBlurredBackgroundImageView.alpha == 1) {
+            [UIView animateWithDuration:interval animations:^{
+                [_blurredBackgroundImageView setAlpha:previousBlurredBackgroundImageView.alpha];
+            } completion:^(BOOL finished) {
+                [_backgroundImageView setAlpha:previousBackgroundImageView.alpha];
+                [previousBackgroundImageView removeFromSuperview];
+                [previousBlurredBackgroundImageView removeFromSuperview];
+            }];
+        } else {
+            [UIView animateWithDuration:interval animations:^{
+                [_backgroundImageView setAlpha:previousBackgroundImageView.alpha];
+                [_blurredBackgroundImageView setAlpha:previousBlurredBackgroundImageView.alpha];
+            } completion:^(BOOL finished) {
+                [previousBackgroundImageView removeFromSuperview];
+                [previousBlurredBackgroundImageView removeFromSuperview];
+            }];
+        }
+        
+        
+    } else {
+        [_backgroundImageView setImage:_backgroundImage];
+        [_blurredBackgroundImageView setImage:_blurredBackgroundImage];
+    }
+}
+
+
+- (void)blurBackground:(BOOL)shouldBlur
+{
+    [_blurredBackgroundImageView setAlpha:shouldBlur?1:0];
 }
 
 #pragma mark - Views creation
@@ -141,11 +190,17 @@
     _backgroundScrollView = [[UIScrollView alloc] initWithFrame:self.frame];
     [_backgroundScrollView setUserInteractionEnabled:NO];
     [_backgroundScrollView setContentSize:CGSizeMake(self.frame.size.width + 2*DEFAULT_MAX_BACKGROUND_MOVEMENT_HORIZONTAL, self.frame.size.height + DEFAULT_MAX_BACKGROUND_MOVEMENT_VERTICAL)];
+    [_backgroundScrollView setContentOffset:CGPointMake(DEFAULT_MAX_BACKGROUND_MOVEMENT_HORIZONTAL, 0)];
     [self addSubview:_backgroundScrollView];
     
     _constraitView = [[UIView alloc] initWithFrame:CGRectMake(0, 0, self.frame.size.width + 2*DEFAULT_MAX_BACKGROUND_MOVEMENT_HORIZONTAL, self.frame.size.height + DEFAULT_MAX_BACKGROUND_MOVEMENT_VERTICAL)];
     [_backgroundScrollView addSubview:_constraitView];
     
+    [self createBackgroundImageView];
+}
+
+- (void)createBackgroundImageView
+{
     _backgroundImageView = [[UIImageView alloc] initWithImage:_backgroundImage];
     [_backgroundImageView setTranslatesAutoresizingMaskIntoConstraints:NO];
     [_backgroundImageView setContentMode:UIViewContentModeScaleAspectFill];
@@ -161,7 +216,6 @@
     [_constraitView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_blurredBackgroundImageView]|" options:0 metrics:0 views:NSDictionaryOfVariableBindings(_blurredBackgroundImageView)]];
     [_constraitView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_blurredBackgroundImageView]|" options:0 metrics:0 views:NSDictionaryOfVariableBindings(_blurredBackgroundImageView)]];
 }
-
 
 
 - (void)createForegroundView
@@ -224,7 +278,6 @@
 - (void)foregroundTapped:(UITapGestureRecognizer *)tapRecognizer
 {
     CGPoint tappedPoint = [tapRecognizer locationInView:_foregroundScrollView];
-    NSLog(@"%f", tappedPoint.y);
     if (tappedPoint.y < _foregroundScrollView.frame.size.height) {
         CGFloat ratio = _foregroundScrollView.contentOffset.y == -_foregroundScrollView.contentInset.top? 1:0;
         [_foregroundScrollView setContentOffset:CGPointMake(0, ratio * _foregroundView.frame.origin.y - _foregroundScrollView.contentInset.top) animated:YES];
@@ -266,15 +319,4 @@
     }
     
 }
-
-
-/*
-// Only override drawRect: if you perform custom drawing.
-// An empty implementation adversely affects performance during animation.
-- (void)drawRect:(CGRect)rect
-{
-    // Drawing code
-}
-*/
-
 @end

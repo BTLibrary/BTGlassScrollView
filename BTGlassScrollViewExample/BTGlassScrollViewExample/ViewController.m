@@ -54,7 +54,7 @@
     [self.navigationController.navigationBar setBackgroundImage:[UIImage new] forBarMetrics:UIBarMetricsDefault];
     self.navigationController.navigationBar.shadowImage = [UIImage new];
     self.title = @"Awesome App";
-    
+
     //background
     self.view.backgroundColor = [UIColor blackColor];
     
@@ -82,7 +82,6 @@
         [_viewScroller addSubview:_glassScrollView1];
         [_viewScroller addSubview:_glassScrollView2];
         [_viewScroller addSubview:_glassScrollView3];
-        
     }
 }
 - (void)viewWillAppear:(BOOL)animated
@@ -104,6 +103,13 @@
         [_viewScroller setContentOffset:CGPointMake(page * _viewScroller.frame.size.width, _viewScroller.contentOffset.y)];
         _page = page;
     }
+    
+    //show animation trick
+    double delayInSeconds = 2.0;
+    dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
+    dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+       // [_glassScrollView1 setBackgroundImage:[UIImage imageNamed:@"background"] overWriteBlur:YES animated:YES duration:1];
+    });
 }
 
 - (void)viewWillLayoutSubviews

@@ -38,6 +38,9 @@
 - (id)initWithFrame:(CGRect)frame BackgroundImage:(UIImage *)backgroundImage blurredImage:(UIImage *)blurredImage viewDistanceFromBottom:(CGFloat)viewDistanceFromBottom foregroundView:(UIView *)foregroundView;
 - (void)scrollHorizontalRatio:(CGFloat)ratio;//from -1 to 1
 - (void)scrollVerticallyToOffset:(CGFloat)offsetY;
+// change background image on the go
+- (void)setBackgroundImage:(UIImage *)backgroundImage overWriteBlur:(BOOL)overWriteBlur animated:(BOOL)animated duration:(NSTimeInterval)interval;
+- (void)blurBackground:(BOOL)shouldBlur;
 @end
 
 
@@ -45,4 +48,6 @@
 @optional
 //use this to configure your foregroundView when the frame of the whole view changed
 - (void)glassScrollView:(BTGlassScrollView *)glassScrollView didChangedToFrame:(CGRect)frame;
+//make custom blur without messing with default settings
+- (UIImage*)glassScrollView:(BTGlassScrollView *)glassScrollView blurForImage:(UIImage *)image;
 @end
