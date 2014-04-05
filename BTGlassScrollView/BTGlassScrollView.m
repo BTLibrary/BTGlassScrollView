@@ -202,8 +202,13 @@
 - (void)createBackgroundImageView
 {
     _backgroundImageView = [[UIImageView alloc] initWithImage:_backgroundImage];
+    _backgroundImageView.frame =CGRectInset(_backgroundImageView.frame, -50.0f, -50.0f);
+    [self addMotionEffectToView: _backgroundImageView magnitude:50.0f];
+    
+    
     [_backgroundImageView setTranslatesAutoresizingMaskIntoConstraints:NO];
     [_backgroundImageView setContentMode:UIViewContentModeScaleAspectFill];
+    
     [_constraitView addSubview:_backgroundImageView];
     _blurredBackgroundImageView = [[UIImageView alloc] initWithImage:_blurredBackgroundImage];
     [_blurredBackgroundImageView setTranslatesAutoresizingMaskIntoConstraints:NO];
@@ -216,7 +221,18 @@
     [_constraitView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"V:|[_blurredBackgroundImageView]|" options:0 metrics:0 views:NSDictionaryOfVariableBindings(_blurredBackgroundImageView)]];
     [_constraitView addConstraints:[NSLayoutConstraint constraintsWithVisualFormat:@"H:|[_blurredBackgroundImageView]|" options:0 metrics:0 views:NSDictionaryOfVariableBindings(_blurredBackgroundImageView)]];
 }
-
+- (void)addMotionEffectToView:(UIView*)view magnitude:(CGFloat)magnitude {
+    
+    UIInterpolatingMotionEffect* xMotion = [[UIInterpolatingMotionEffect alloc]
+                                            initWithKeyPath:@"center.x" type:UIInterpolatingMotionEffectTypeTiltAlongHorizontalAxis];
+    xMotion.minimumRelativeValue = @(-magnitude); xMotion.maximumRelativeValue = @(magnitude);
+    UIInterpolatingMotionEffect* yMotion = [[UIInterpolatingMotionEffect alloc]
+                                            initWithKeyPath:@"center.y" type:UIInterpolatingMotionEffectTypeTiltAlongVerticalAxis];
+    yMotion.minimumRelativeValue = @(-magnitude); yMotion.maximumRelativeValue = @(magnitude);
+    UIMotionEffectGroup* group = [[UIMotionEffectGroup alloc] init];
+    group.motionEffects = @[xMotion, yMotion];
+    [view addMotionEffect:group];
+}
 
 - (void)createForegroundView
 {
