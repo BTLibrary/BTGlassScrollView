@@ -30,7 +30,7 @@
         //initialize values
         _backgroundImage = backgroundImage;
         if (blurredImage) {
-            _blurredBackgroundImage = backgroundImage;
+            _blurredBackgroundImage = blurredImage;
         }else{
             if ([_delegate respondsToSelector:@selector(glassScrollView:blurForImage:)]) {
                 _blurredBackgroundImage = [_delegate glassScrollView:self blurForImage:_backgroundImage];

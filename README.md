@@ -1,6 +1,8 @@
 BTGlassScrollView
 =================
 
+![Vertical](/Gifs/Vertical.gif) _ ![Horizontal](/Gifs/Horizontal.gif)
+
 This is a view for you to either use as-is or modify the source. The view comes loaded with the ability to:
 
 1. Create a self contained view replicating the look and feel of one panel of Yahoo! Weather app
@@ -42,6 +44,15 @@ The example provided are mix of 3 * 2 flavor. 3 ways to create viewController an
 
 1. simple implementation
 2. complex horizontal scroll implementation
+
+----
+
+**Example 2 Note**  
+*It is not without its bug. I would be very glad if someone can help fixing it*  
+Known issues:  
+1. the scrolling flickers at times  
+2. no separator between the two  
+3. some of the method is a hack (heed the warning of the comment)
 
 ----
 
