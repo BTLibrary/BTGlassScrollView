@@ -27,7 +27,10 @@
     UINavigationController *glassScrollVCWithNavC = [self glassScrollVCWithNavigatorForIndex:0];
     _viewControllerArray[0] = glassScrollVCWithNavC;
     
-    UIPageViewController *pageViewController = [[UIPageViewController alloc] initWithTransitionStyle:UIPageViewControllerTransitionStyleScroll navigationOrientation:UIPageViewControllerNavigationOrientationHorizontal options:0];
+    
+    NSDictionary* options = @{ UIPageViewControllerOptionInterPageSpacingKey : [NSNumber numberWithFloat:4.0f] };
+
+    UIPageViewController *pageViewController = [[UIPageViewController alloc] initWithTransitionStyle:UIPageViewControllerTransitionStyleScroll navigationOrientation:UIPageViewControllerNavigationOrientationHorizontal options:options];
     [pageViewController setViewControllers:_viewControllerArray direction:UIPageViewControllerNavigationDirectionForward animated:YES completion:nil];
     [pageViewController.view setBackgroundColor:[UIColor blackColor]];
     [pageViewController setDelegate:self];
